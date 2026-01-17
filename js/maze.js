@@ -153,33 +153,33 @@ class MazeGenerator {
         let marginLeft, marginRight, marginTop, marginBottom;
 
         if (isLandscape) {
-            // Landscape: HUD on left side
-            marginLeft = 120;  // Space for HUD on left
+            // Landscape: Compact HUD on left side
+            marginLeft = 60;   // Space for compact HUD on left
             marginRight = 20;
-            marginTop = 20;
-            marginBottom = 100; // Space for buttons at bottom
+            marginTop = 15;
+            marginBottom = 80; // Space for buttons at bottom
         } else {
             // Portrait: HUD on top
-            marginLeft = 20;
-            marginRight = 20;
-            marginTop = 100;   // Space for HUD at top
-            marginBottom = 100; // Space for buttons at bottom
+            marginLeft = 15;
+            marginRight = 15;
+            marginTop = 90;    // Space for HUD at top
+            marginBottom = 90; // Space for buttons at bottom
         }
 
         // Calculate available space
         const availableWidth = canvasWidth - marginLeft - marginRight;
         const availableHeight = canvasHeight - marginTop - marginBottom - exitZoneHeight;
 
-        // Scale maze complexity based on level, but cap it
-        let targetCols = Math.min(21, 11 + Math.floor(level / 3) * 2); // Cap at 21 cols
-        let targetRows = Math.min(25, 13 + Math.floor(level / 4) * 2); // Cap at 25 rows
+        // Scale maze complexity based on level (higher caps for more complexity)
+        let targetCols = Math.min(31, 11 + Math.floor(level / 2) * 2); // Cap at 31 cols
+        let targetRows = Math.min(35, 13 + Math.floor(level / 2) * 2); // Cap at 35 rows
 
         // Ensure odd dimensions for maze algorithm
         if (targetCols % 2 === 0) targetCols++;
         if (targetRows % 2 === 0) targetRows++;
 
         // Calculate cell size that would fit target dimensions
-        const minCellSize = 16; // Minimum for playability
+        const minCellSize = 12; // Smaller for higher complexity
         let cellSize = Math.floor(Math.min(
             availableWidth / targetCols,
             availableHeight / targetRows

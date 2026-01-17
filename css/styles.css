@@ -903,8 +903,54 @@ body {
 }
 
 /* ==========================================================================
-   LANDSCAPE ORIENTATION
+   LANDSCAPE ORIENTATION - COMPACT LEFT HUD (Desktop/iPad)
    ========================================================================== */
+
+@media (orientation: landscape) {
+
+    /* Compact left-side HUD for landscape mode - higher specificity */
+    #hud.glass-panel {
+        position: fixed;
+        top: var(--spacing-sm);
+        left: var(--spacing-xs);
+        width: 50px;
+        max-width: 50px;
+        min-width: 50px;
+        padding: var(--spacing-xs);
+        background: rgba(30, 41, 59, 0.85);
+    }
+
+    #hud .hud-row {
+        gap: var(--spacing-xs);
+    }
+
+    #hud .hud-item {
+        gap: 1px;
+    }
+
+    #hud .hud-label {
+        font-size: 0.5rem;
+    }
+
+    #hud .hud-value {
+        font-size: 0.85rem;
+    }
+
+    #hud .hud-divider {
+        width: 25px;
+        height: 1px;
+    }
+
+    #hud .progress-bar {
+        width: 4px;
+        height: 50px;
+        margin-top: var(--spacing-xs);
+    }
+}
+
+/* ==========================================================================
+   LANDSCAPE ORIENTATION - SMALL SCREENS
+   ==========================================================================
 
 @media (orientation: landscape) and (max-height: 500px) {
     #hud {
