@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!--
+    ============================================================================
+    EXIT VECTOR - A GRAVITY-DRIVEN MAZE EXPERIENCE
+    ============================================================================
+    An HTML5 maze game where multiple balls are controlled simultaneously 
+    by tilting a smartphone, navigating toward exit zones with varying scores.
+    
+    HTML5 Features Used:
+    - DeviceOrientation API (accelerometer/gyroscope)
+    - Touch Events API for mobile controls
+    - Canvas 2D rendering
+    - Responsive viewport and media queries
+    
+    Author: Exit Vector Team
+    Version: 1.0.0
+    ============================================================================
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Exit Vector - A gravity-driven maze game controlled by tilting your device">
+    <meta name="theme-color" content="#0f172a">
+
+    <!-- Prevent iOS zoom on double tap -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>Exit Vector - Gravity Maze</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!--
+    ========================================
+    START SCREEN OVERLAY
+    ========================================
+    Main menu with start button and instructions.
+    -->
+    <div id="permission-overlay" class="overlay">
+        <div class="overlay-content glass-panel">
+            <h1 class="game-title">
+                <span class="title-main">Exit Vector</span>
+                <span class="title-sub">A Gravity-Driven Maze</span>
+            </h1>
+
+            <div class="instructions">
+                <p class="instruction-text">Guide your ball through the maze to the exit</p>
+                <div class="control-hints">
+                    <div class="control-hint">
+                        <span class="hint-icon">📱</span>
+                        <span class="hint-text">Tilt to move</span>
+                    </div>
+                    <div class="control-hint">
+                        <span class="hint-icon">👆</span>
+                        <span class="hint-text">Touch to control</span>
+                    </div>
+                    <div class="control-hint">
+                        <span class="hint-icon">⌨️</span>
+                        <span class="hint-text">Arrow keys</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scoring-info">
+                <p class="scoring-title">Exit Zones</p>
+                <div class="scoring-zones">
+                    <span class="zone zone-high">500</span>
+                    <span class="zone zone-low">100</span>
+                    <span class="zone zone-gold">1000</span>
+                    <span class="zone zone-zero">0</span>
+                    <span class="zone zone-mid">250</span>
+                </div>
+                <p class="scoring-note">Reach the highest-score exit!</p>
+            </div>
+
+            <button id="start-button" class="action-button pulse-animation"
+                onclick="window.Game && window.Game.startGame()" ontouchstart="this.classList.add('touched')"
+                ontouchend="window.Game && window.Game.startGame(); event.preventDefault();">
+                <span class="button-text">Start Game</span>
+                <span class="button-icon">▶</span>
+            </button>
+
+            <p class="permission-note">
+                Touch controls work on all devices.<br>
+                Tilt controls require motion sensors (HTTPS).
+            </p>
+        </div>
+    </div>
+
+    <!--
+    ========================================
+    GAME CONTAINER
+    ========================================
+    Main wrapper for the game canvas and UI elements.
+    -->
+    <div id="game-container">
+        <!--
+        ========================================
+        GAME CANVAS
+        ========================================
+        HTML5 Canvas element for rendering the maze and balls.
+        -->
+        <canvas id="game-canvas" aria-label="Exit Vector maze game"></canvas>
+
+        <!--
+        ========================================
+        TOUCH CONTROL AREA
+        ========================================
+        Invisible touch area overlaying the canvas for touch controls.
+        -->
+        <div id="touch-area"></div>
+
+        <!--
+        ========================================
+        HEADS-UP DISPLAY (HUD)
+        ========================================
+        Shows level, score, target, and active balls.
+        -->
+        <div id="hud" class="glass-panel">
+            <div class="hud-row">
+                <div class="hud-item">
+                    <span class="hud-label">Level</span>
+                    <span id="level-value" class="hud-value">1</span>
+                </div>
+                <div class="hud-divider"></div>
+                <div class="hud-item">
+                    <span class="hud-label">Score</span>
+                    <span id="score-value" class="hud-value highlight">0</span>
+                </div>
+                <div class="hud-divider"></div>
+                <div class="hud-item">
+                    <span class="hud-label">Target</span>
+                    <span id="target-value" class="hud-value">800</span>
+                </div>
+
+            </div>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+        </div>
+
+        <!--
+        ========================================
+        GAME CONTROL BUTTONS
+        ========================================
+        Pause and restart buttons.
+        -->
+        <div id="game-buttons">
+            <button id="pause-button" class="game-btn" aria-label="Pause game">
+                <span class="btn-icon">⏸</span>
+            </button>
+            <button id="restart-button" class="game-btn" aria-label="Restart level">
+                <span class="btn-icon">🔄</span>
+            </button>
+        </div>
+
+        <!--
+        ========================================
+        PAUSE OVERLAY
+        ========================================
+        Shown when the game is paused.
+        -->
+        <div id="pause-overlay" class="overlay hidden">
+            <div class="overlay-content glass-panel">
+                <h2 class="overlay-title">Paused</h2>
+                <div class="overlay-buttons">
+                    <button id="resume-button" class="action-button">
+                        <span class="button-text">Resume</span>
+                        <span class="button-icon">▶</span>
+                    </button>
+                    <button id="restart-from-pause-button" class="action-button secondary">
+                        <span class="button-text">Restart</span>
+                        <span class="button-icon">🔄</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!--
+        ========================================
+        LEVEL COMPLETE OVERLAY
+        ========================================
+        Shown when player reaches target score.
+        -->
+        <div id="level-complete-overlay" class="overlay hidden">
+            <div class="overlay-content glass-panel success">
+                <h2 class="overlay-title">Level Complete!</h2>
+                <div class="overlay-stats">
+                    <div class="stat">
+                        <span class="stat-label">Score</span>
+                        <span id="complete-score" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Target</span>
+                        <span id="complete-target" class="stat-value">800</span>
+                    </div>
+                </div>
+                <button id="next-level-button" class="action-button">
+                    <span class="button-text">Next Level</span>
+                    <span class="button-icon">→</span>
+                </button>
+            </div>
+        </div>
+
+        <!--
+        ========================================
+        LEVEL FAILED OVERLAY
+        ========================================
+        Shown when player fails to reach target.
+        -->
+        <div id="level-failed-overlay" class="overlay hidden">
+            <div class="overlay-content glass-panel failure">
+                <h2 class="overlay-title">Level Failed</h2>
+                <div class="overlay-stats">
+                    <div class="stat">
+                        <span class="stat-label">Score</span>
+                        <span id="failed-score" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Target</span>
+                        <span id="failed-target" class="stat-value">800</span>
+                    </div>
+                </div>
+                <button id="retry-button" class="action-button">
+                    <span class="button-text">Try Again</span>
+                    <span class="button-icon">🔄</span>
+                </button>
+            </div>
+        </div>
+
+        <!--
+        ========================================
+        GAME COMPLETE OVERLAY
+        ========================================
+        Shown when player beats all levels.
+        -->
+        <div id="game-complete-overlay" class="overlay hidden">
+            <div class="overlay-content glass-panel success">
+                <h2 class="overlay-title">🎉 Victory!</h2>
+                <p class="overlay-message">You've mastered all 10 levels!</p>
+                <div class="overlay-stats">
+                    <div class="stat">
+                        <span class="stat-label">Total Score</span>
+                        <span id="total-score" class="stat-value large">0</span>
+                    </div>
+                </div>
+                <button id="play-again-button" class="action-button">
+                    <span class="button-text">Play Again</span>
+                    <span class="button-icon">🔄</span>
+                </button>
+            </div>
+        </div>
+
+        <!--
+        ========================================
+        LEVEL NOTIFICATION
+        ========================================
+        Brief popup when level starts.
+        -->
+        <div id="level-notification" class="notification hidden">
+            <span id="notification-level" class="notification-text">Level 1</span>
+            <span id="notification-balls" class="notification-sub">Navigate to the exit!</span>
+        </div>
+
+        <!--
+        ========================================
+        CONTROL MODE INDICATOR
+        ========================================
+        Shows current control method.
+        -->
+        <div id="control-indicator" class="control-badge">
+            <span id="control-icon" class="control-icon">📱</span>
+            <span id="control-text" class="control-text">Tilt</span>
+        </div>
+
+        <!--
+        ========================================
+        TOUCH JOYSTICK
+        ========================================
+        Visual feedback for touch controls.
+        -->
+        <div id="touch-joystick" class="touch-joystick hidden">
+            <div class="joystick-base"></div>
+            <div id="joystick-knob" class="joystick-knob"></div>
+        </div>
+
+        <!--
+        ========================================
+        DEBUG PANEL
+        ========================================
+        Developer information (hidden by default).
+        -->
+        <div id="debug-panel" class="debug-panel hidden">
+            <div class="debug-row">
+                <span class="debug-label">FPS:</span>
+                <span id="debug-fps" class="debug-value">60</span>
+            </div>
+        </div>
+    </div>
+
+    <!--
+    ========================================
+    JAVASCRIPT MODULES
+    ========================================
+    Loaded in order to ensure dependencies are met.
+    -->
+
+    <!-- Configuration and constants -->
+    <script src="js/config.js"></script>
+
+    <!-- Input controls (IMU, touch, keyboard) -->
+    <script src="js/controls.js"></script>
+
+    <!-- Procedural maze generation -->
+    <script src="js/maze.js"></script>
+
+    <!-- Multi-ball physics simulation -->
+    <script src="js/physics.js"></script>
+
+    <!-- Canvas rendering engine -->
+    <script src="js/renderer.js"></script>
+
+    <!-- Main game loop and orchestration -->
+    <script src="js/game.js"></script>
+</body>
+
+</html>
